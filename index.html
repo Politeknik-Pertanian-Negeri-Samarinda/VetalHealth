@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VetaHealth - Platform Layanan Kesehatan Digital & Konsultasi Dokter Online</title>
+  <meta name="description" content="Layanan konsultasi dokter online terpercaya, pemantauan tanda vital real-time, dan pemesanan jadwal medis interaktif berbasis teknologi modern.">
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            medical: {
+              emerald: '#059669',
+              teal: '#0f766e',
+              cyan: '#06b6d4',
+              mint: '#ecfdf5',
+              dark: '#0a1926',
+            }
+          },
+          animation: {
+            'pulse-subtle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'float': 'float 4s ease-in-out infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-8px)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- HTMX CDN -->
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+  <!-- Alpine.js CDN -->
+  <script defer src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js"></script>
+
+  <style>
+    /* Styling Custom & Micro-interactions */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .glass-dark {
+      background: rgba(10, 25, 38, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .htmx-swapping {
+      opacity: 0.2;
+      transition: opacity 250ms ease-out;
+    }
+    .htmx-settling {
+      opacity: 1;
+      transition: opacity 300ms ease-in;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 antialiased font-sans selection:bg-emerald-500 selection:text-white"
+      x-data="bookingModal">
+
+  <!-- ==================== TOP EMERGENCY BAR ==================== -->
+  <div class="bg-gradient-to-r from-teal-900 via-slate-900 to-emerald-950 text-slate-300 text-xs py-2 px-4 border-b border-teal-800/40">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center space-x-2">
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-400 mr-1.5 animate-ping"></span>
+          Emergency Hotline
+        </span>
+        <span class="text-slate-300">Butuh bantuan medis darurat segera? Hubungi <strong>119</strong> atau <strong>(021) 800-9988</strong></span>
+      </div>
+      <div class="hidden md:flex items-center space-x-4 text-slate-400">
+        <span>🕒 Layanan Siaga 24 Jam</span>
+        <span>•</span>
+        <span>🛡️ Enkripsi Rekam Medis Standar HIPAA</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== HEADER / NAVBAR ==================== -->
+  <header class="sticky top-0 z-40 w-full glass-card border-b border-slate-200/80 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="#" class="flex items-center space-x-3 group">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-emerald-600/20 group-hover:scale-105 transition-transform">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+          </svg>
+        </div>
+        <div>
+          <span class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 bg-clip-text text-transparent">
+            Veta<span class="text-slate-900">Health</span>
+          </span>
+          <span class="block text-[10px] font-semibold uppercase tracking-widest text-emerald-600 -mt-1">
+            Digital Health Platform
+          </span>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation Menu -->
+      <nav class="hidden lg:flex items-center space-x-6 text-sm font-medium text-slate-600">
+        <a href="#vitals-section" class="hover:text-emerald-600 transition-colors flex items-center space-x-1">
+          <span>Tanda Vital</span>
+          <span class="px-1.5 py-0.5 text-[10px] font-bold bg-cyan-100 text-cyan-700 rounded-full">HTMX</span>
+        </a>
+        <a href="vitals-dashboard.html" class="hover:text-emerald-600 transition-colors font-semibold text-slate-700 flex items-center space-x-1">
+          <span>📊 Dashboard Pasien</span>
+        </a>
+        <a href="cek-gejala.html" class="hover:text-emerald-600 transition-colors font-semibold text-slate-700 flex items-center space-x-1">
+          <span>✨ Cek Gejala AI</span>
+        </a>
+        <a href="telekonsultasi.html" class="hover:text-emerald-600 transition-colors font-semibold text-slate-700 flex items-center space-x-1">
+          <span>📹 Telemedisin</span>
+        </a>
+        <a href="#dokter" class="hover:text-emerald-600 transition-colors">Dokter Spesialis</a>
+        <a href="#faq" class="hover:text-emerald-600 transition-colors">FAQ</a>
+      </nav>
+
+      <!-- Action Button / CTA -->
+      <div class="flex items-center space-x-3">
+        <button @click="openModal()" 
+                class="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-md shadow-emerald-600/25 hover:shadow-lg hover:shadow-emerald-600/35 transition-all transform active:scale-95">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          <span>Konsultasi Dokter</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== HERO SECTION ==================== -->
+  <section class="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28 bg-gradient-to-b from-emerald-50/60 via-cyan-50/30 to-slate-50">
+    <!-- Decorative Glow Circles -->
+    <div class="absolute top-10 left-1/4 w-96 h-96 bg-emerald-200/40 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+    <div class="absolute top-32 right-1/4 w-96 h-96 bg-cyan-200/40 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        
+        <!-- Left Hero Content -->
+        <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+          
+          <!-- Trust Badge -->
+          <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/90 border border-emerald-200 shadow-sm text-xs font-semibold text-emerald-800">
+            <span class="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Terintegrasi Rekam Medis & Dokter Bersertifikasi IDI</span>
+          </div>
+
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+            Solusi Kesehatan Digital 
+            <span class="block bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
+              Cerdas, Cepat & Terpercaya.
+            </span>
+          </h1>
+
+          <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
+            Akses telekonsultasi dokter spesialis langsung dari kenyamanan rumah, pantau tanda vital biometrik secara asinkron dan terenkripsi, serta dapatkan resep obat resmi dalam hitungan menit.
+          </p>
+
+          <!-- CTA Group -->
+          <div class="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+            <button @click="openModal()" 
+                    class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base shadow-xl shadow-emerald-600/30 hover:shadow-emerald-600/40 transition-all flex items-center justify-center space-x-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              </svg>
+              <span>Mulai Konsultasi Online</span>
+            </button>
+
+            <a href="#vitals-section" 
+               class="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/90 font-semibold text-base shadow-sm transition-all flex items-center justify-center space-x-2">
+              <svg class="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+              <span>Uji Cek Vitals (HTMX)</span>
+            </a>
+          </div>
+
+          <!-- Feature Highlights / Social Proof -->
+          <div class="pt-6 border-t border-slate-200/60 grid grid-cols-3 gap-4 text-center lg:text-left">
+            <div>
+              <div class="text-2xl font-extrabold text-slate-900">120+</div>
+              <div class="text-xs text-slate-500 font-medium">Dokter Spesialis Siaga</div>
+            </div>
+            <div>
+              <div class="text-2xl font-extrabold text-slate-900">4.9/5.0</div>
+              <div class="text-xs text-slate-500 font-medium">Kepuasan Pasien</div>
+            </div>
+            <div>
+              <div class="text-2xl font-extrabold text-slate-900">&lt; 5 Menit</div>
+              <div class="text-xs text-slate-500 font-medium">Respons Dokter Cepat</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Hero Preview Card (Interactive Telehealth Mockup) -->
+        <div class="lg:col-span-5 relative">
+          <div class="relative mx-auto max-w-md bg-white rounded-3xl p-6 shadow-2xl shadow-emerald-900/10 border border-slate-100 animate-float">
+            
+            <!-- Top Status Indicator -->
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div class="flex items-center space-x-3">
+                <div class="relative">
+                  <div class="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-2xl border-2 border-emerald-500">
+                    👩‍⚕️
+                  </div>
+                  <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>
+                </div>
+                <div>
+                  <h4 class="font-bold text-slate-800 text-sm">dr. Anita Rahmawati, Sp.JP</h4>
+                  <p class="text-xs text-emerald-600 font-medium">Spesialis Jantung & Pembuluh Darah</p>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold">
+                Online
+              </span>
+            </div>
+
+            <!-- Mini Live Session Preview -->
+            <div class="mt-4 p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-teal-950 text-white relative overflow-hidden">
+              <div class="flex justify-between items-center text-xs text-slate-300 mb-2">
+                <span class="flex items-center space-x-1.5">
+                  <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                  <span>Telekonsultasi Siap</span>
+                </span>
+                <span class="font-mono text-cyan-300">HD Video Encrypted</span>
+              </div>
+              <div class="py-3 text-center">
+                <div class="text-3xl font-extrabold text-emerald-400 font-mono tracking-wider">00:15:32</div>
+                <div class="text-xs text-slate-400 mt-1">Sesi Konsultasi Aktif Pasien Terjadwal</div>
+              </div>
+              <div class="flex justify-center space-x-3 pt-2">
+                <button class="p-2.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs">
+                  🎤 Mic On
+                </button>
+                <button class="p-2.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs">
+                  📹 Cam On
+                </button>
+                <button @click="openModal()" class="px-3 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold">
+                  Jadwalkan Serupa
+                </button>
+              </div>
+            </div>
+
+            <!-- Live Vitals Snapshot -->
+            <div class="mt-4 grid grid-cols-2 gap-3 text-xs">
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="text-slate-500 block">Detak Jantung</span>
+                <span class="font-bold text-slate-800 text-lg">72 <span class="text-xs font-normal text-slate-500">BPM</span></span>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="text-slate-500 block">Status Tekanan</span>
+                <span class="font-bold text-emerald-600 text-lg">118/76 <span class="text-xs font-normal text-slate-500">mmHg</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== REAL-TIME VITALS SECTION (HTMX) ==================== -->
+  <section id="vitals-section" class="py-16 bg-white border-y border-slate-200/80" x-data="vitalsSimulator">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Header -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+        <div>
+          <div class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-lg bg-cyan-50 text-cyan-800 border border-cyan-200 text-xs font-bold uppercase tracking-wider mb-2">
+            <svg class="w-3.5 h-3.5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            <span>Telemetry Asinkron • Powered by HTMX</span>
+          </div>
+          <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">
+            Pemantauan Tanda Vital Real-Time
+          </h2>
+          <p class="text-slate-600 text-sm mt-1 max-w-xl">
+            Simulasi pengambilan metrik biometrik pasien secara asinkron tanpa me-refresh seluruh halaman web.
+          </p>
+        </div>
+
+        <!-- Controls: Skenario, Polling Toggle, dan Audio Beep -->
+        <div class="flex flex-wrap items-center gap-2">
+          
+          <!-- Audio Bip Toggle -->
+          <button @click="toggleSound()"
+                  :class="soundOn ? 'bg-cyan-100 text-cyan-800 border-cyan-300' : 'bg-slate-100 text-slate-600 border-slate-200'"
+                  class="px-3 py-2 rounded-xl text-xs font-semibold border flex items-center space-x-1.5 transition-all"
+                  title="Toggle Suara Beep EKG Monitor">
+            <span x-text="soundOn ? '🔊 Audio Monitor Aktif' : '🔇 Audio Bisu'"></span>
+          </button>
+
+          <!-- Auto-Polling Toggle -->
+          <button @click="toggleAutoPolling()"
+                  :class="autoPolling ? 'bg-emerald-600 text-white shadow-emerald-600/30' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'"
+                  class="px-3.5 py-2 rounded-xl text-xs font-bold border border-transparent shadow-sm flex items-center space-x-1.5 transition-all">
+            <span class="w-2 h-2 rounded-full" :class="autoPolling ? 'bg-white animate-ping' : 'bg-slate-400'"></span>
+            <span x-text="autoPolling ? 'Auto-Sync Aktif (6s)' : 'Aktifkan Auto-Sync'"></span>
+          </button>
+
+          <!-- Trigger HTMX Manual Buttons -->
+          <div class="inline-flex rounded-xl shadow-sm p-1 bg-slate-100 border border-slate-200">
+            <button hx-get="partials/vitals-normal.html" 
+                    hx-target="#vitals-display" 
+                    hx-swap="innerHTML"
+                    @click="activeScenario = 'normal'"
+                    :class="activeScenario === 'normal' ? 'bg-white text-emerald-700 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900'"
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all">
+              Normal
+            </button>
+            <button hx-get="partials/vitals-elevated.html" 
+                    hx-target="#vitals-display" 
+                    hx-swap="innerHTML"
+                    @click="activeScenario = 'elevated'"
+                    :class="activeScenario === 'elevated' ? 'bg-white text-amber-700 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900'"
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all">
+              Elevated / Demam
+            </button>
+            <button hx-get="partials/vitals-active.html" 
+                    hx-target="#vitals-display" 
+                    hx-swap="innerHTML"
+                    @click="activeScenario = 'active'"
+                    :class="activeScenario === 'active' ? 'bg-white text-cyan-700 shadow-sm font-bold' : 'text-slate-600 hover:text-slate-900'"
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all">
+              Pasca Latihan
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Medical Oscilloscope (Pulse Canvas) -->
+      <div class="mb-6 rounded-2xl overflow-hidden border border-slate-800 shadow-lg relative bg-[#06131c]">
+        <div class="px-4 py-2.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between text-xs">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="font-mono text-emerald-400 font-semibold tracking-wider">ELECTROCARDIOGRAM LEAD II (DYNAMIC OSCILLOSCOPE)</span>
+          </div>
+          <div class="flex items-center space-x-4 font-mono text-[11px] text-slate-400">
+            <span>25 mm/s</span>
+            <span>10 mm/mV</span>
+            <span class="text-cyan-400 font-bold">FILT: ON</span>
+          </div>
+        </div>
+        <div class="w-full h-24 relative">
+          <canvas id="ecg-canvas" class="w-full h-full block"></canvas>
+        </div>
+      </div>
+
+      <!-- HTMX Target Container (Data Vitals Ditukar Secara Asinkron) -->
+      <div id="vitals-display" class="p-6 rounded-3xl bg-slate-50/80 border border-slate-200/90 shadow-sm">
+        
+        <!-- Default State: Normal Vitals (Dimuat Awal) -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 transition-all duration-500 ease-in-out" id="vitals-content">
+          <!-- Heart Rate -->
+          <div class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-emerald-100 shadow-sm relative overflow-hidden group hover:border-emerald-300 transition-all">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Detak Jantung</span>
+              <span class="inline-flex items-center justify-center p-1.5 bg-rose-50 text-rose-500 rounded-lg animate-pulse">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              </span>
+            </div>
+            <div class="flex items-baseline space-x-2">
+              <span class="text-3xl font-extrabold text-slate-800 tracking-tight" id="val-bpm">72</span>
+              <span class="text-xs font-medium text-slate-500">BPM</span>
+            </div>
+            <div class="mt-2 flex items-center text-xs text-emerald-600 font-medium">
+              <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              Irama Sinus Normal
+            </div>
+          </div>
+
+          <!-- Tekanan Darah -->
+          <div class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-cyan-100 shadow-sm relative overflow-hidden group hover:border-cyan-300 transition-all">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Tekanan Darah</span>
+              <span class="inline-flex items-center justify-center p-1.5 bg-cyan-50 text-cyan-600 rounded-lg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+              </span>
+            </div>
+            <div class="flex items-baseline space-x-2">
+              <span class="text-3xl font-extrabold text-slate-800 tracking-tight">118/76</span>
+              <span class="text-xs font-medium text-slate-500">mmHg</span>
+            </div>
+            <div class="mt-2 flex items-center text-xs text-emerald-600 font-medium">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-ping"></span>
+              Optimal (Normotensif)
+            </div>
+          </div>
+
+          <!-- SpO2 Saturasi Oksigen -->
+          <div class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-teal-100 shadow-sm relative overflow-hidden group hover:border-teal-300 transition-all">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Saturasi SpO2</span>
+              <span class="inline-flex items-center justify-center p-1.5 bg-teal-50 text-teal-600 rounded-lg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                </svg>
+              </span>
+            </div>
+            <div class="flex items-baseline space-x-2">
+              <span class="text-3xl font-extrabold text-slate-800 tracking-tight">99%</span>
+              <span class="text-xs font-medium text-slate-500">SpO2</span>
+            </div>
+            <div class="mt-2 flex items-center text-xs text-emerald-600 font-medium">
+              <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              Oksigenasi Prima
+            </div>
+          </div>
+
+          <!-- Suhu Tubuh -->
+          <div class="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-emerald-100 shadow-sm relative overflow-hidden group hover:border-emerald-300 transition-all">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Suhu Tubuh</span>
+              <span class="inline-flex items-center justify-center p-1.5 bg-amber-50 text-amber-500 rounded-lg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+              </span>
+            </div>
+            <div class="flex items-baseline space-x-2">
+              <span class="text-3xl font-extrabold text-slate-800 tracking-tight">36.6</span>
+              <span class="text-xs font-medium text-slate-500">°C</span>
+            </div>
+            <div class="mt-2 flex items-center text-xs text-emerald-600 font-medium">
+              <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              Suhu Afebrile (Normal)
+            </div>
+          </div>
+        </div>
+
+        <!-- Diagnostics Bar -->
+        <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div class="flex items-center space-x-2">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-slate-600 font-medium">Status Keseluruhan:</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-semibold border border-emerald-200">
+              Kondisi Prima & Stabil
+            </span>
+          </div>
+          <div class="text-slate-400 font-mono">
+            Sinkronisasi Terakhir: <span class="text-slate-600 font-medium sync-time">Baru saja</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== LAYANAN MEDIS SECTION ==================== -->
+  <section id="layanan" class="py-20 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <span class="text-xs font-bold uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+          Ekosistem Kesehatan Komprehensif
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3 tracking-tight">
+          Layanan Medis Modern & Terpercaya
+        </h2>
+        <p class="text-slate-600 mt-2 text-sm sm:text-base">
+          Mulai dari konsultasi daring terenkripsi hingga tes laboratorium panggilan ke rumah dengan protokol kesehatan ketat.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        
+        <!-- Card 1: Telemedisin HD Video -->
+        <a href="telekonsultasi.html" class="bg-white rounded-3xl p-6 border border-slate-200/80 hover:border-emerald-300 shadow-sm hover:shadow-xl hover:shadow-emerald-600/5 transition-all group block">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 mb-2">Telekonsultasi HD Video</h3>
+          <p class="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
+            Bicara tatap muka dengan dokter spesialis melalui sambungan video berenkripsi tinggi tanpa kompresi visual diagnosa.
+          </p>
+          <span class="text-xs font-semibold text-emerald-600 inline-flex items-center group-hover:translate-x-1 transition-transform">
+            Buka Ruang Sesi &rarr;
+          </span>
+        </a>
+
+        <!-- Card 2: Resep Digital & Farmasi -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 hover:border-cyan-300 shadow-sm hover:shadow-xl hover:shadow-cyan-600/5 transition-all group">
+          <div class="w-12 h-12 rounded-2xl bg-cyan-100 text-cyan-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 mb-2">Resep Digital & Antar Obat</h3>
+          <p class="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
+            Resep obat terverifikasi dokter langsung dikirimkan ke apotek mitra resmi dan diantar cepat ke alamat rumah Anda.
+          </p>
+          <span class="text-xs font-semibold text-cyan-600 inline-flex items-center group-hover:translate-x-1 transition-transform">
+            Cek Mitra Apotek &rarr;
+          </span>
+        </div>
+
+        <!-- Card 3: Homecare & Lab Medis -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 hover:border-teal-300 shadow-sm hover:shadow-xl hover:shadow-teal-600/5 transition-all group">
+          <div class="w-12 h-12 rounded-2xl bg-teal-100 text-teal-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 mb-2">Homecare & Lab Panggilan</h3>
+          <p class="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
+            Petugas analis laboratorium berlisensi datang ke kediaman Anda untuk pengambilan sampel darah dan cek kesehatan rutin.
+          </p>
+          <span class="text-xs font-semibold text-teal-600 inline-flex items-center group-hover:translate-x-1 transition-transform">
+            Pesan Layanan Homecare &rarr;
+          </span>
+        </div>
+
+        <!-- Card 4: AI Smart Symptom Checker -->
+        <a href="cek-gejala.html" class="bg-white rounded-3xl p-6 border border-slate-200/80 hover:border-emerald-300 shadow-sm hover:shadow-xl hover:shadow-emerald-600/5 transition-all group block">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 mb-2">Triage & Symptom Checker</h3>
+          <p class="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
+            Panduan cerdas deteksi dini keluhan awal untuk merekomendasikan jenis dokter spesialis yang paling tepat.
+          </p>
+          <span class="text-xs font-semibold text-emerald-600 inline-flex items-center group-hover:translate-x-1 transition-transform">
+            Buka AI Symptom Checker &rarr;
+          </span>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== DOKTER SPESIALIS SECTION (ALPINE FILTER) ==================== -->
+  <section id="dokter" class="py-20 bg-white" x-data="doctorFilter">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+            Tim Medis Profesional
+          </span>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-2 tracking-tight">
+            Konsultasi dengan Dokter Spesialis Pilihan
+          </h2>
+          <p class="text-slate-600 text-sm mt-1">
+            Seluruh dokter kami telah terverifikasi oleh Konsil Kedokteran Indonesia (KKI) dan IDI.
+          </p>
+        </div>
+
+        <!-- Filter Tab Kategori (Alpine.js) -->
+        <div class="flex flex-wrap gap-2">
+          <button @click="selectedCategory = 'all'"
+                  :class="selectedCategory === 'all' ? 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/25' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                  class="px-4 py-2 rounded-xl text-xs transition-all">
+            Semua Dokter
+          </button>
+          <button @click="selectedCategory = 'jantung'"
+                  :class="selectedCategory === 'jantung' ? 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/25' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                  class="px-4 py-2 rounded-xl text-xs transition-all">
+            Jantung
+          </button>
+          <button @click="selectedCategory = 'anak'"
+                  :class="selectedCategory === 'anak' ? 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/25' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                  class="px-4 py-2 rounded-xl text-xs transition-all">
+            Pediatri (Anak)
+          </button>
+          <button @click="selectedCategory = 'dalam'"
+                  :class="selectedCategory === 'dalam' ? 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/25' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                  class="px-4 py-2 rounded-xl text-xs transition-all">
+            Penyakit Dalam
+          </button>
+          <button @click="selectedCategory = 'jiwa'"
+                  :class="selectedCategory === 'jiwa' ? 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/25' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                  class="px-4 py-2 rounded-xl text-xs transition-all">
+            Psikiatri
+          </button>
+          <button @click="selectedCategory = 'umum'"
+                  :class="selectedCategory === 'umum' ? 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/25' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                  class="px-4 py-2 rounded-xl text-xs transition-all">
+            Umum 24/7
+          </button>
+        </div>
+      </div>
+
+      <!-- Doctor Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <template x-for="doc in filteredDoctors" :key="doc.id">
+          <div class="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm hover:border-emerald-300 hover:shadow-xl transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center space-x-3">
+                  <div class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-3xl">
+                    👨‍⚕️
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-slate-800 text-base" x-text="doc.name"></h3>
+                    <p class="text-xs text-emerald-600 font-semibold" x-text="doc.spec"></p>
+                    <div class="flex items-center space-x-2 text-xs text-slate-500 mt-1">
+                      <span>Pengalaman: <strong class="text-slate-700" x-text="doc.exp"></strong></span>
+                    </div>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                      :class="doc.status === 'Online' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'"
+                      x-text="doc.status"></span>
+              </div>
+
+              <!-- Rating & Reviews -->
+              <div class="flex items-center justify-between py-2 px-3 bg-slate-50 rounded-xl mb-4 text-xs">
+                <div class="flex items-center space-x-1 text-amber-500 font-bold">
+                  <span>★</span>
+                  <span class="text-slate-700" x-text="doc.rating"></span>
+                  <span class="text-slate-400 font-normal" x-text="'(' + doc.reviews + ' ulasan)'"></span>
+                </div>
+                <span class="px-2 py-0.5 bg-cyan-50 text-cyan-700 font-medium rounded text-[11px]" x-text="doc.badge"></span>
+              </div>
+            </div>
+
+            <!-- Price & Booking Button -->
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+              <div>
+                <span class="text-[11px] text-slate-400 block">Biaya Konsultasi</span>
+                <span class="font-extrabold text-slate-800 text-base" x-text="doc.fee"></span>
+              </div>
+              <button @click="$root.openModal(doc.id)"
+                      class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-md shadow-emerald-600/20">
+                Pilih Jadwal
+              </button>
+            </div>
+          </div>
+        </template>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== ALUR KONSULTASI SECTION ==================== -->
+  <section id="alur" class="py-20 bg-gradient-to-b from-slate-50 to-emerald-50/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <span class="text-xs font-bold uppercase tracking-widest text-teal-700 bg-teal-50 px-3 py-1 rounded-full border border-teal-200">
+          Proses Mudah & Cepat
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3 tracking-tight">
+          3 Langkah Menuju Konsultasi Berkualitas
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <div class="bg-white/90 backdrop-blur rounded-3xl p-8 border border-slate-200/80 shadow-sm relative">
+          <div class="w-10 h-10 rounded-full bg-emerald-600 text-white font-extrabold flex items-center justify-center text-lg mb-6 shadow-md shadow-emerald-600/30">
+            1
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 mb-2">Pilih Dokter & Slot Jadwal</h3>
+          <p class="text-slate-600 text-sm leading-relaxed">
+            Pilih spesialisasi yang Anda butuhkan, tentukan tanggal, dan tentukan waktu konsultasi yang paling fleksibel bagi Anda.
+          </p>
+        </div>
+
+        <div class="bg-white/90 backdrop-blur rounded-3xl p-8 border border-slate-200/80 shadow-sm relative">
+          <div class="w-10 h-10 rounded-full bg-teal-600 text-white font-extrabold flex items-center justify-center text-lg mb-6 shadow-md shadow-teal-600/30">
+            2
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 mb-2">Sesi Konsultasi Online</h3>
+          <p class="text-slate-600 text-sm leading-relaxed">
+            Bicara langsung dengan dokter via sambungan video interaktif atau chat klinis dengan privasi rekam medis yang terlindungi.
+          </p>
+        </div>
+
+        <div class="bg-white/90 backdrop-blur rounded-3xl p-8 border border-slate-200/80 shadow-sm relative">
+          <div class="w-10 h-10 rounded-full bg-cyan-600 text-white font-extrabold flex items-center justify-center text-lg mb-6 shadow-md shadow-cyan-600/30">
+            3
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 mb-2">Resep & Tindakan Lanjutan</h3>
+          <p class="text-slate-600 text-sm leading-relaxed">
+            Dapatkan diagnosis tertulis, rujukan lab, serta resep digital resmi yang siap ditebus dan diantar langsung ke rumah Anda.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== FAQ ACCORDION SECTION (ALPINE) ==================== -->
+  <section id="faq" class="py-20 bg-white" x-data="{ activeFaq: 1 }">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center mb-14">
+        <span class="text-xs font-bold uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+          Pertanyaan Umum
+        </span>
+        <h2 class="text-3xl font-extrabold text-slate-900 mt-3 tracking-tight">
+          Hal yang Sering Ditanyakan
+        </h2>
+      </div>
+
+      <div class="space-y-4">
+        
+        <div class="border border-slate-200 rounded-2xl overflow-hidden transition-all">
+          <button @click="activeFaq = activeFaq === 1 ? null : 1"
+                  class="w-full px-6 py-4 text-left font-bold text-slate-800 flex justify-between items-center bg-slate-50/50 hover:bg-slate-50 transition-colors">
+            <span>Bagaimana cara kerja pemantauan tanda vital real-time di VetaHealth?</span>
+            <span class="text-emerald-600 font-mono text-xl" x-text="activeFaq === 1 ? '−' : '+'"></span>
+          </button>
+          <div x-show="activeFaq === 1" x-collapse class="px-6 py-4 text-slate-600 text-sm bg-white border-t border-slate-100">
+            Sistem telemetri kami mengintegrasikan sinyal biometrik (seperti sensor detak jantung, SpO2, dan tensi darah) menggunakan protokol transmisi data asinkron ringan (HTMX). Dokter dapat melihat pembaruan data secara real-time saat Anda melakukan telekonsultasi.
+          </div>
+        </div>
+
+        <div class="border border-slate-200 rounded-2xl overflow-hidden transition-all">
+          <button @click="activeFaq = activeFaq === 2 ? null : 2"
+                  class="w-full px-6 py-4 text-left font-bold text-slate-800 flex justify-between items-center bg-slate-50/50 hover:bg-slate-50 transition-colors">
+            <span>Apakah dokter di VetaHealth memiliki izin praktek resmi?</span>
+            <span class="text-emerald-600 font-mono text-xl" x-text="activeFaq === 2 ? '−' : '+'"></span>
+          </button>
+          <div x-show="activeFaq === 2" x-collapse class="px-6 py-4 text-slate-600 text-sm bg-white border-t border-slate-100">
+            Ya, seluruh dokter yang tergabung dalam platform VetaHealth telah melewati verifikasi STR (Surat Tanda Registrasi) aktif dan SIP (Surat Izin Praktik) resmi dari Konsil Kedokteran Indonesia (KKI) serta terafiliasi dengan IDI.
+          </div>
+        </div>
+
+        <div class="border border-slate-200 rounded-2xl overflow-hidden transition-all">
+          <button @click="activeFaq = activeFaq === 3 ? null : 3"
+                  class="w-full px-6 py-4 text-left font-bold text-slate-800 flex justify-between items-center bg-slate-50/50 hover:bg-slate-50 transition-colors">
+            <span>Bagaimana jika kondisi medis saya termasuk darurat?</span>
+            <span class="text-emerald-600 font-mono text-xl" x-text="activeFaq === 3 ? '−' : '+'"></span>
+          </button>
+          <div x-show="activeFaq === 3" x-collapse class="px-6 py-4 text-slate-600 text-sm bg-white border-t border-slate-100">
+            Platform telekonsultasi ini ditujukan untuk perawatan non-darurat dan rawat jalan. Untuk kondisi gawat darurat seperti nyeri dada hebat, sesak napas akut, atau cedera kepala berat, segera hubungi nomor gawat darurat <strong>119</strong> atau kunjungi IGD rumah sakit terdekat.
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== MODAL BOOKING KONSULTASI (ALPINE.JS) ==================== -->
+  <div x-show="isOpen"
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="opacity-100"
+       x-transition:leave-end="opacity-0"
+       @keydown.escape.window="closeModal()"
+       class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 sm:p-6"
+       style="display: none;">
+    
+    <!-- Backdrop Blur -->
+    <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" @click="closeModal()"></div>
+
+    <!-- Modal Box Container -->
+    <div class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all z-10 my-8">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 p-6 text-white flex items-center justify-between">
+        <div>
+          <span class="text-xs font-semibold uppercase tracking-wider text-emerald-100">Jadwal Konsultasi Dokter</span>
+          <h3 class="text-xl font-extrabold tracking-tight">Formulir Booking Medis</h3>
+        </div>
+        <button @click="closeModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors">
+          ✕
+        </button>
+      </div>
+
+      <!-- Step Indicator Bar -->
+      <div class="bg-slate-50 border-b border-slate-200 px-6 py-3 flex items-center justify-between text-xs font-semibold">
+        <div class="flex items-center space-x-2" :class="step >= 1 ? 'text-emerald-700' : 'text-slate-400'">
+          <span class="w-5 h-5 rounded-full flex items-center justify-center" :class="step >= 1 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'">1</span>
+          <span class="hidden sm:inline">Dokter</span>
+        </div>
+        <div class="h-0.5 flex-1 mx-3" :class="step >= 2 ? 'bg-emerald-500' : 'bg-slate-200'"></div>
+        <div class="flex items-center space-x-2" :class="step >= 2 ? 'text-emerald-700' : 'text-slate-400'">
+          <span class="w-5 h-5 rounded-full flex items-center justify-center" :class="step >= 2 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'">2</span>
+          <span class="hidden sm:inline">Jadwal</span>
+        </div>
+        <div class="h-0.5 flex-1 mx-3" :class="step >= 3 ? 'bg-emerald-500' : 'bg-slate-200'"></div>
+        <div class="flex items-center space-x-2" :class="step >= 3 ? 'text-emerald-700' : 'text-slate-400'">
+          <span class="w-5 h-5 rounded-full flex items-center justify-center" :class="step >= 3 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'">3</span>
+          <span class="hidden sm:inline">Pasien</span>
+        </div>
+        <div class="h-0.5 flex-1 mx-3" :class="step >= 4 ? 'bg-emerald-500' : 'bg-slate-200'"></div>
+        <div class="flex items-center space-x-2" :class="step >= 4 ? 'text-emerald-700' : 'text-slate-400'">
+          <span class="w-5 h-5 rounded-full flex items-center justify-center" :class="step >= 4 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'">4</span>
+          <span class="hidden sm:inline">Konfirmasi</span>
+        </div>
+      </div>
+
+      <!-- Modal Body (Dynamic Steps) -->
+      <div class="p-6">
+        
+        <!-- STEP 1: Pilih Dokter & Spesialisasi -->
+        <div x-show="step === 1 && !bookingSuccess">
+          <h4 class="text-base font-bold text-slate-800 mb-3">Pilih Dokter Spesialis</h4>
+          <div class="space-y-3 max-h-80 overflow-y-auto pr-1">
+            <template x-for="d in doctors" :key="d.id">
+              <div @click="selectDoctor(d)"
+                   :class="form.doctorId === d.id ? 'border-emerald-500 bg-emerald-50/50 ring-2 ring-emerald-500/20' : 'border-slate-200 hover:border-emerald-200'"
+                   class="p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                  <div class="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-2xl" x-text="d.avatar"></div>
+                  <div>
+                    <h5 class="font-bold text-slate-800 text-sm" x-text="d.name"></h5>
+                    <p class="text-xs text-slate-500" x-text="d.spec"></p>
+                    <span class="text-[11px] text-emerald-600 font-semibold" x-text="'★ ' + d.rating + ' (' + d.reviews + ' reviews)'"></span>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs font-bold text-slate-800 block" x-text="d.fee"></span>
+                  <span class="text-[10px] text-slate-400">per sesi</span>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- STEP 2: Pilih Tanggal & Waktu -->
+        <div x-show="step === 2 && !bookingSuccess">
+          <h4 class="text-base font-bold text-slate-800 mb-1">Tentukan Waktu Konsultasi</h4>
+          <p class="text-xs text-slate-500 mb-4">Konsultasi bersama: <strong class="text-emerald-700" x-text="form.doctorName"></strong></p>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Pilih Tanggal Janji Temu</label>
+              <input type="date" x-model="form.date"
+                     class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-2">Pilih Slot Sesi Waktu</label>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                <template x-for="slot in ['09:00 - 09:30 WIB', '10:00 - 10:30 WIB', '13:30 - 14:00 WIB', '15:00 - 15:30 WIB', '19:00 - 19:30 WIB', '20:00 - 20:30 WIB']" :key="slot">
+                  <button type="button" @click="form.timeSlot = slot"
+                          :class="form.timeSlot === slot ? 'bg-emerald-600 text-white font-bold border-emerald-600' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'"
+                          class="p-2.5 text-xs rounded-xl border transition-all text-center" x-text="slot">
+                  </button>
+                </template>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Metode Sesi</label>
+              <div class="flex space-x-3">
+                <label class="flex items-center space-x-2 text-xs font-medium cursor-pointer">
+                  <input type="radio" value="video" x-model="form.consultType" class="text-emerald-600 focus:ring-emerald-500">
+                  <span>📹 Video Call HD</span>
+                </label>
+                <label class="flex items-center space-x-2 text-xs font-medium cursor-pointer">
+                  <input type="radio" value="chat" x-model="form.consultType" class="text-emerald-600 focus:ring-emerald-500">
+                  <span>💬 Chat Klinis & Voice</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Biodata Pasien & Catatan Keluhan -->
+        <div x-show="step === 3 && !bookingSuccess">
+          <h4 class="text-base font-bold text-slate-800 mb-3">Informasi Pasien</h4>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Lengkap Pasien *</label>
+              <input type="text" x-model="form.patientName" placeholder="Contoh: Budi Santoso"
+                     class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Usia (Tahun)</label>
+                <input type="number" x-model="form.patientAge" placeholder="Contoh: 32"
+                       class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Nomor WhatsApp *</label>
+                <input type="tel" x-model="form.phone" placeholder="08123456789"
+                       class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Ringkasan Keluhan / Gejala Medis</label>
+              <textarea x-model="form.notes" rows="3" placeholder="Jelaskan secara singkat gejala yang Anda rasakan, durasi, atau riwayat alergi obat..."
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4: Ringkasan & Konfirmasi -->
+        <div x-show="step === 4 && !bookingSuccess">
+          <h4 class="text-base font-bold text-slate-800 mb-3">Ringkasan Pemesanan Konsultasi</h4>
+          
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-2.5 mb-4">
+            <div class="flex justify-between">
+              <span class="text-slate-500">Dokter Spesialis:</span>
+              <strong class="text-slate-800" x-text="form.doctorName"></strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Jadwal Sesi:</span>
+              <strong class="text-slate-800" x-text="form.date + ' • ' + form.timeSlot"></strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Nama Pasien:</span>
+              <strong class="text-slate-800" x-text="form.patientName + (form.patientAge ? ' (' + form.patientAge + ' th)' : '')"></strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Metode Konsultasi:</span>
+              <strong class="text-emerald-700 uppercase" x-text="form.consultType"></strong>
+            </div>
+            <div class="pt-2 border-t border-slate-200 flex justify-between text-sm">
+              <span class="font-bold text-slate-700">Total Biaya Sesi:</span>
+              <span class="font-extrabold text-emerald-600" x-text="form.doctorFee"></span>
+            </div>
+          </div>
+
+          <p class="text-[11px] text-slate-400 leading-normal">
+            * Dengan mengonfirmasi jadwal, link ruang telekonsultasi virtual dan instruksi akan dikirimkan secara instan melalui WhatsApp terdaftar.
+          </p>
+        </div>
+
+        <!-- SUCCESS CONFIRMATION STATE -->
+        <div x-show="bookingSuccess" class="py-8 text-center space-y-4">
+          <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl mx-auto shadow-lg shadow-emerald-600/20">
+            ✓
+          </div>
+          <h4 class="text-2xl font-extrabold text-slate-800">Tiket Janji Temu Diterbitkan!</h4>
+          <p class="text-sm text-slate-600 max-w-md mx-auto">
+            Sesi konsultasi Anda dengan <strong class="text-slate-800" x-text="form.doctorName"></strong> telah berhasil dijadwalkan pada <strong x-text="form.date + ' (' + form.timeSlot + ')'"></strong>.
+          </p>
+
+          <div class="inline-block px-5 py-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 font-mono font-bold text-lg">
+            KODE TIKET: <span class="text-emerald-600" x-text="bookedCode"></span>
+          </div>
+
+          <div class="pt-4 flex justify-center space-x-3">
+            <button @click="closeModal()" class="px-6 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs">
+              Tutup & Selesai
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer Action Buttons -->
+      <div x-show="!bookingSuccess" class="bg-slate-50 border-t border-slate-200 px-6 py-4 flex items-center justify-between">
+        <button type="button" @click="prevStep()" x-show="step > 1"
+                class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-100 transition-colors">
+          &larr; Kembali
+        </button>
+        <span x-show="step === 1"></span>
+
+        <button type="button" @click="step === 4 ? submitBooking() : nextStep()"
+                :disabled="isSubmitting"
+                class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-md shadow-emerald-600/20 flex items-center space-x-2">
+          <span x-show="isSubmitting" class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          <span x-text="step === 4 ? (isSubmitting ? 'Memproses...' : 'Konfirmasi & Terbitkan Tiket') : 'Lanjut &rarr;'"></span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATION COMPONENT ==================== -->
+  <div x-data="toastNotification"
+       x-show="show"
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="translate-y-4 opacity-0 scale-95"
+       x-transition:enter-end="translate-y-0 opacity-100 scale-100"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="translate-y-0 opacity-100 scale-100"
+       x-transition:leave-end="translate-y-4 opacity-0 scale-95"
+       class="fixed bottom-6 right-6 z-50 max-w-sm w-full bg-slate-900 text-white rounded-2xl p-4 shadow-2xl border border-emerald-500/30 flex items-start space-x-3"
+       style="display: none;">
+    <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">
+      ✓
+    </div>
+    <div class="flex-1">
+      <h5 class="font-bold text-sm text-emerald-400" x-text="title"></h5>
+      <p class="text-xs text-slate-300 mt-0.5 leading-normal" x-text="message"></p>
+    </div>
+    <button @click="show = false" class="text-slate-400 hover:text-white text-xs">✕</button>
+  </div>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="bg-slate-950 text-slate-400 py-16 border-t border-slate-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+        
+        <div class="md:col-span-1 space-y-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-cyan-500 flex items-center justify-center text-white font-bold">
+              +
+            </div>
+            <span class="text-xl font-extrabold text-white">VetaHealth</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Platform layanan kesehatan digital dan telemonitoring biometrik modern yang memudahkan Anda terhubung dengan dokter spesialis berlisensi.
+          </p>
+        </div>
+
+        <div>
+          <h5 class="text-white text-xs font-bold uppercase tracking-wider mb-4">Layanan Pasien</h5>
+          <ul class="space-y-2 text-xs">
+            <li><a href="#vitals-section" class="hover:text-emerald-400 transition-colors">Cek Tanda Vital (HTMX)</a></li>
+            <li><a href="#dokter" class="hover:text-emerald-400 transition-colors">Konsultasi Dokter Umum</a></li>
+            <li><a href="#dokter" class="hover:text-emerald-400 transition-colors">Dokter Spesialis Jantung</a></li>
+            <li><a href="#dokter" class="hover:text-emerald-400 transition-colors">Pediatri & Tumbuh Kembang</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h5 class="text-white text-xs font-bold uppercase tracking-wider mb-4">Standar Medis</h5>
+          <ul class="space-y-2 text-xs">
+            <li>Terakreditasi Kemenkes RI</li>
+            <li>Dokter Anggota IDI Terverifikasi</li>
+            <li>ISO 27001 Keamanan Rekam Medis</li>
+            <li>Enkripsi Jalur Pasien-Dokter 256-bit</li>
+          </ul>
+        </div>
+
+        <div>
+          <h5 class="text-white text-xs font-bold uppercase tracking-wider mb-4">Kontak Darurat</h5>
+          <p class="text-xs leading-relaxed text-slate-400 mb-3">
+            Gedung Sentra Medis Digital Lt. 8, Jl. Sudirman Kav. 21, Jakarta Selatan.
+          </p>
+          <div class="text-xs font-mono text-emerald-400 font-bold">
+            Hotline: 119 / (021) 800-9988
+          </div>
+        </div>
+
+      </div>
+
+      <div class="pt-8 border-t border-slate-900 flex flex-col md:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+        <p>&copy; 2026 VetaHealth Platform. Seluruh Hak Cipta Dilindungi Undang-Undang.</p>
+        <p class="text-center md:text-right text-[11px] text-slate-500 max-w-md">
+          Disclaimer: Layanan telekonsultasi ini ditujukan sebagai konsultasi dan skrining awal non-darurat. Untuk kegawatdaruratan, segera kunjungi faskes terdekat.
+        </p>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- Scripts: ECG Visualizer & App Controller -->
+  <script src="assets/js/ecg-visualizer.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
